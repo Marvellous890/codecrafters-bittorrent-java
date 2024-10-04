@@ -1,5 +1,9 @@
+import com.dampcake.bencode.Bencode;
+import com.dampcake.bencode.Type;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class BencodeDecoder {
     private final String encodedValue;
@@ -13,6 +17,7 @@ public class BencodeDecoder {
         if (Character.isDigit(encodedValue.charAt(current))) return decodeString();
         if (encodedValue.charAt(current) == 'i') return decodeInteger();
         if (encodedValue.charAt(current) == 'l') return decodeList();
+        if (encodedValue.charAt(current) == 'd') return decodeDict();
         return null;
     }
 
@@ -50,5 +55,10 @@ public class BencodeDecoder {
         }
         current++;
         return list;
+    }
+
+    private Map<String, Object> decodeDict() {
+        Bencode bencode = new Bencode();
+        return bencode.decode(encodedValue.getBytes(), Type.DICTIONARY);
     }
 }
