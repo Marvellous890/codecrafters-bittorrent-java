@@ -2,9 +2,12 @@ import B.Decoder;
 
 import Torrent.TorrentParser;
 import Torrent.Torrent;
-import Torrent.Piece;
-
+import Tracker.Tracker;
+import Tracker.TrackerRequest;
+import Tracker.TrackerResponse;
+import Tracker.Peer;
 import com.google.gson.Gson;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,16 +48,30 @@ public class Main {
             if (torrent != null) {
                 System.out.println("Tracker URL: " + torrent.getAnnounce());
                 System.out.println("Length: " + torrent.getInfo().getLength());
-                System.out.println("Info Hash: " + torrent.getInfo().getHash());
 
-                Piece[] pieces = torrent.getInfo().getPieces();
-
-                System.out.println("Piece Length: " + pieces[0].getLength());
+                System.out.println("Info Hash: " + new String(Hex.encodeHex(torrent.getInfo().getHash())));
+                System.out.println("Piece Length: " + torrent.getInfo().getPieceLength());
                 System.out.println("Piece Hashes:");
 
-                for (Piece piece: pieces){
-                    System.out.println(piece.getHash());
+                for (byte[] piece : torrent.getInfo().getPieces()) {
+                    System.out.println(Hex.encodeHex(piece));
                 }
+            }
+        } else if (command.equals("peers")) {
+            File file = new File(args[1]);
+            Torrent torrent = null;
+            try (FileInputStream fis = new FileInputStream(file)) {
+                TorrentParser parser = new TorrentParser(fis);
+                torrent = parser.getTorrent();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+            assert torrent != null;
+            TrackerRequest req = new TrackerRequest(torrent);
+            Tracker tracker = new Tracker(req);
+            TrackerResponse response = tracker.getResponse();
+            for (Peer p : response.getPeers()) {
+                System.out.println(p);
             }
         } else {
             System.out.println("Unknown command: " + command);

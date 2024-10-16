@@ -22,9 +22,9 @@
             <version>2.10.1</version>
         </dependency>
         <dependency>
-            <groupId>com.dampcake</groupId>
-            <artifactId>bencode</artifactId>
-            <version>1.4.1</version>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.13</version>
         </dependency>
     </dependencies>
 

@@ -3,14 +3,14 @@ package Torrent;
 import java.net.URL;
 
 public class Torrent {
-    private URL announce;
+    private String announce;
     private Info info;
 
-    public URL getAnnounce() {
+    public String getAnnounce() {
         return announce;
     }
 
-    public void setAnnounce(URL announce) {
+    public void setAnnounce(String announce) {
         this.announce = announce;
     }
 

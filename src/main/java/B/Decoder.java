@@ -38,9 +38,7 @@ public class Decoder {
     private Object decodeNext()  {
         try {
             int next = peek();
-            if (Character.isDigit(next)){
-                return useBytes ? readStringBytes() : readString();
-            }
+            if (Character.isDigit(next)) return useBytes ? readStringBytes() : readString();
             else if(next == 'i') return readInteger();
             else if(next == 'l') return readList();
             else if(next == 'd') return readDictionary();
