@@ -2,7 +2,6 @@ package Torrent;
 
 import B.Decoder;
 import B.Encoder;
-import com.google.gson.Gson;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -10,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Map;
 
 public class TorrentParser {
@@ -41,25 +41,41 @@ public class TorrentParser {
         }
     }
 
-    private Torrent.Info parseInfo(){
-        var info = new Torrent.Info();
+    private Info parseInfo(){
+        Info info = new Info();
+
         Map<String, ?> infoMap = (Map<String, ?>) obj.get("info");
+
+        Encoder bencoder = new Encoder(infoMap);
+
         info.setName(new String((byte[]) infoMap.get("name")));
         info.setLength((long) infoMap.get("length"));
-        info.setPieceLength((long) infoMap.get("pieceLength"));
-        info.setHash(hashInfo());
+        info.setHash(sha1(bencoder.getEncoded()));
+        info.setPieces(parsePieces());
+
         return info;
     }
 
-    private String hashInfo(){
+    private Piece[] parsePieces(){
         Map<String, ?> infoMap = (Map<String, ?>) obj.get("info");
-        Gson gson = new Gson();
-        System.out.println(gson.toJson(infoMap));
-        Encoder encoder = new Encoder(infoMap);
-        Decoder Decoder = new Decoder(encoder.getEncoded(), true);
-        System.out.println(gson.toJson(Decoder.getDecoded()));
-        byte[] bytes = encoder.getEncoded();
-        return sha1(bytes);
+
+        byte[] bytes = (byte[]) infoMap.get("pieces");
+        int division = 20;
+        int len = bytes.length/division;
+        Piece[] pieces = new Piece[len];
+        int length = ((Long) infoMap.get("pieceLength")).intValue();
+        for (int i = 0; i < len; i++) {
+            Piece piece = new Piece();
+            int from = i * division;
+            int to = from + division;
+            piece.setHash(bytesToHex(Arrays.copyOfRange(bytes, from, to)));
+            piece.setLength(length);
+            pieces[i] = piece;
+        }
+        for (Piece p: pieces){
+            System.out.println(p.getHash());
+        }
+        return pieces;
     }
 
     private String sha1(byte[] input) {
