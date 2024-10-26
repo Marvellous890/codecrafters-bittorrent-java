@@ -12,7 +12,7 @@ import org.apache.commons.codec.binary.Hex;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 
 public class Main {
@@ -102,9 +102,12 @@ public class Main {
                         "BitTorrent protocol".getBytes(StandardCharsets.UTF_8));
                 byteArrayOutputStream.write(new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
                 byteArrayOutputStream.write(torrent.getInfo().getHash());
-                byteArrayOutputStream.write(
-                        // rang
-                        "00112233445566778899".getBytes(StandardCharsets.UTF_8));
+
+                SecureRandom secureRandom = new SecureRandom();
+                byte[] randomBytes = new byte[20]; // my peer_id
+                secureRandom.nextBytes(randomBytes);
+
+                byteArrayOutputStream.write(randomBytes);
                 outputStream.write(byteArrayOutputStream.toByteArray());
                 InputStream inputStream = clientSocket.getInputStream();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
