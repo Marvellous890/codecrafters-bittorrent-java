@@ -9,9 +9,10 @@ import Tracker.Peer;
 import com.google.gson.Gson;
 import org.apache.commons.codec.binary.Hex;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 
 public class Main {
     private static final Gson gson = new Gson();
@@ -73,10 +74,49 @@ public class Main {
             for (Peer p : response.getPeers()) {
                 System.out.println(p);
             }
+        } else if ("handshake".equals(command)) {
+            handshake(args[1], args[2]);
         } else {
             System.out.println("Unknown command: " + command);
         }
 
+    }
+
+    private static void handshake(String torrentFile, String hostPort) {
+        try {
+            File file = new File(torrentFile);
+            FileInputStream fis = new FileInputStream(file);
+            TorrentParser parser = new TorrentParser(fis);
+
+            Torrent torrent = parser.getTorrent();
+
+            String[] split = hostPort.split(":");
+            String host = split[0], port = split[1];
+            try (Socket clientSocket = new Socket(host, Integer.parseInt(port))) {
+                OutputStream outputStream = clientSocket.getOutputStream();
+                ByteArrayOutputStream byteArrayOutputStream =
+                        new ByteArrayOutputStream();
+                byteArrayOutputStream.write(19);
+                byteArrayOutputStream.write(
+                        "BitTorrent protocol".getBytes(StandardCharsets.UTF_8));
+                byteArrayOutputStream.write(new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
+                byteArrayOutputStream.write(torrent.getInfo().getHash());
+                byteArrayOutputStream.write(
+                        "00112233445566778899".getBytes(StandardCharsets.UTF_8));
+                outputStream.write(byteArrayOutputStream.toByteArray());
+                InputStream inputStream = clientSocket.getInputStream();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buf = new byte[8192];
+                int length = inputStream.read(buf);
+                baos.write(buf, 0, length);
+                inputStream.close();
+                byte[] responseBytes = baos.toByteArray();
+                String peerIdHex = new String(Hex.encodeHex(responseBytes));
+                System.out.println("Peer ID: " + peerIdHex);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
