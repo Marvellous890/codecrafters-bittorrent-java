@@ -13,6 +13,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class Main {
     private static final Gson gson = new Gson();
@@ -102,6 +103,7 @@ public class Main {
                 byteArrayOutputStream.write(new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
                 byteArrayOutputStream.write(torrent.getInfo().getHash());
                 byteArrayOutputStream.write(
+                        // rang
                         "00112233445566778899".getBytes(StandardCharsets.UTF_8));
                 outputStream.write(byteArrayOutputStream.toByteArray());
                 InputStream inputStream = clientSocket.getInputStream();
@@ -111,7 +113,8 @@ public class Main {
                 baos.write(buf, 0, length);
                 inputStream.close();
                 byte[] responseBytes = baos.toByteArray();
-                String peerIdHex = new String(Hex.encodeHex(responseBytes));
+                byte[] peerId = Arrays.copyOfRange(responseBytes, 48, 68);
+                String peerIdHex = new String(Hex.encodeHex(peerId));
                 System.out.println("Peer ID: " + peerIdHex);
             }
         } catch (IOException e) {
