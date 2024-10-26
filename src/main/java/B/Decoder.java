@@ -9,32 +9,68 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The Decoder class is responsible for decoding Bencode encoded data.
+ */
 public class Decoder {
     private final Object decoded;
     private final PushbackInputStream in;
     private final boolean useBytes;
+
+    /**
+     * Constructs a Decoder with the given InputStream and a flag indicating whether to use bytes.
+     *
+     * @param in the InputStream to read from
+     * @param useBytes whether to use bytes for string decoding
+     */
     public Decoder(InputStream in, boolean useBytes) {
         this.in = new PushbackInputStream(in);
         this.useBytes = useBytes;
         decoded = decodeNext();
     }
 
+    /**
+     * Constructs a Decoder with the given InputStream.
+     *
+     * @param in the InputStream to read from
+     */
     public Decoder(InputStream in){
         this(in, false);
     }
 
+    /**
+     * Constructs a Decoder with the given byte array and a flag indicating whether to use bytes.
+     *
+     * @param bytes the byte array to read from
+     * @param useBytes whether to use bytes for string decoding
+     */
     public Decoder(byte[] bytes, boolean useBytes){
         this(new ByteArrayInputStream(bytes), useBytes);
     }
 
+    /**
+     * Constructs a Decoder with the given byte array.
+     *
+     * @param bytes the byte array to read from
+     */
     public Decoder(byte[] bytes){
         this(new ByteArrayInputStream(bytes));
     }
 
+    /**
+     * Returns the decoded object.
+     *
+     * @return the decoded object
+     */
     public Object getDecoded() {
         return decoded;
     }
 
+    /**
+     * Decodes the next Bencode element from the input stream.
+     *
+     * @return the decoded object
+     */
     private Object decodeNext()  {
         try {
             int next = peek();
@@ -49,10 +85,22 @@ public class Decoder {
         return null;
     }
 
+    /**
+     * Reads a Bencode encoded string from the input stream.
+     *
+     * @return the decoded string
+     * @throws IOException if an I/O error occurs
+     */
     private String readString() throws IOException {
         return new String(readStringBytes());
     }
 
+    /**
+     * Reads a Bencode encoded byte array from the input stream.
+     *
+     * @return the decoded byte array
+     * @throws IOException if an I/O error occurs
+     */
     private byte[] readStringBytes() throws IOException {
         int next = in.read();
         StringBuilder sb = new StringBuilder();
@@ -66,6 +114,12 @@ public class Decoder {
         return b;
     }
 
+    /**
+     * Reads a Bencode encoded integer from the input stream.
+     *
+     * @return the decoded integer
+     * @throws IOException if an I/O error occurs
+     */
     private Long readInteger() throws IOException {
         int next = in.read();
         if (next != 'i') throw new RuntimeException("");
@@ -78,6 +132,12 @@ public class Decoder {
         return Long.parseLong(sb.toString());
     }
 
+    /**
+     * Reads a Bencode encoded list from the input stream.
+     *
+     * @return the decoded list
+     * @throws IOException if an I/O error occurs
+     */
     private List<?> readList() throws IOException {
         List<Object> list = new ArrayList<>();
         int next = in.read();
@@ -91,6 +151,12 @@ public class Decoder {
         return list;
     }
 
+    /**
+     * Reads a Bencode encoded dictionary from the input stream.
+     *
+     * @return the decoded dictionary
+     * @throws IOException if an I/O error occurs
+     */
     private Map<String, ?> readDictionary() throws IOException {
         Map<String, Object> map = new HashMap<>();
         int next = in.read();
@@ -106,12 +172,24 @@ public class Decoder {
         return map;
     }
 
+    /**
+     * Peeks the next byte in the input stream without consuming it.
+     *
+     * @return the next byte
+     * @throws IOException if an I/O error occurs
+     */
     private int peek() throws IOException {
         int next = in.read();
         if (next != -1) in.unread(next);
         return next;
     }
 
+    /**
+     * Converts a string to camel case.
+     *
+     * @param str the string to convert
+     * @return the camel case string
+     */
     private String toCamelCase(String str){
         StringBuilder sb = new StringBuilder();
         boolean nextUp = false;
