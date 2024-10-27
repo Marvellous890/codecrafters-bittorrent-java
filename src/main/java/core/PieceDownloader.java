@@ -53,7 +53,7 @@ public class PieceDownloader {
         byte[] downloadedPiece = null;
         for (Peer peer : peers) {
             try {
-                downloadedPiece = downloadPieceFromPeer(peer.getIp().toString(), peer.getPort(), torrent, pieceIndex);
+                downloadedPiece = downloadPieceFromPeer(peer.getIp().getHostAddress(), peer.getPort(), torrent, pieceIndex);
                 break;
             } catch (Exception e) {
                 System.err.println("Failed to download from peer " + peer + ": " + e.getMessage());
