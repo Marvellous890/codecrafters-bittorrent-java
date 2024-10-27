@@ -1,7 +1,5 @@
 package Torrent;
 
-import java.net.URL;
-
 public class Torrent {
     private String announce;
     private Info info;

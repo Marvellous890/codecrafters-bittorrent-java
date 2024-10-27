@@ -7,11 +7,13 @@ import Tracker.TrackerRequest;
 import Tracker.TrackerResponse;
 import Tracker.Peer;
 import com.google.gson.Gson;
+import core.PieceDownloader;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
@@ -60,9 +62,8 @@ public class Main {
                 }
             }
         } else if (command.equals("peers")) {
-            File file = new File(args[1]);
             Torrent torrent = null;
-            try (FileInputStream fis = new FileInputStream(file)) {
+            try (FileInputStream fis = new FileInputStream(args[1])) {
                 TorrentParser parser = new TorrentParser(fis);
                 torrent = parser.getTorrent();
             } catch (IOException e) {
@@ -77,6 +78,22 @@ public class Main {
             }
         } else if ("handshake".equals(command)) {
             handshake(args[1], args[2]);
+        } else if ("download_piece".equals(command)) {
+            if (args.length < 5 || !"-o".equals(args[1])) {
+                System.out.println(
+                        "Usage: download_piece -o <output_file> <torrent_file> <piece_index>"
+                );
+                return;
+            }
+            String outputPath = args[2];
+            String torrentPath = args[3];
+            int pieceIndex = Integer.parseInt(args[4]);
+
+            try {
+                PieceDownloader.downloadPiece(outputPath, torrentPath, pieceIndex);
+            } catch (IOException| NoSuchAlgorithmException ex) {
+                System.out.println(ex.getMessage());
+            }
         } else {
             System.out.println("Unknown command: " + command);
         }

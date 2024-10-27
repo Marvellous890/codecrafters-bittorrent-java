@@ -1,10 +1,13 @@
 package Tracker;
 
 import Torrent.Torrent;
+import core.PieceDownloader;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+
 public class TrackerRequest {
     private String announce;
     private byte[] infoHash;
@@ -17,7 +20,7 @@ public class TrackerRequest {
     public TrackerRequest(Torrent torrent) {
         announce = torrent.getAnnounce();
         infoHash = torrent.getInfo().getHash();
-        peerId = "00112233445566778899".getBytes();
+        peerId = PieceDownloader.PEER_ID.getBytes();
         port = 6881;
         uploaded = 0;
         downloaded = 0;

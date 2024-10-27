@@ -11,6 +11,7 @@ import java.util.Map;
 public class TorrentParser {
     private Map<String, ?> obj;
     private Torrent torrent = new Torrent();
+
     public TorrentParser(InputStream in) {
         Decoder Decoder = new Decoder(in, true);
         this.obj = (Map<String, ?>) Decoder.getDecoded();
