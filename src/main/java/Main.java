@@ -23,79 +23,81 @@ public class Main {
     public static void main(String[] args) {
         String command = args[0];
 
-        if ("decode".equals(command)) {
-            String bencodedValue = args[1];
-            Object decoded;
+        switch (command) {
+            case "decode" -> {
+                String bencodedValue = args[1];
+                Object decoded;
 
-            try {
-                Decoder b = new Decoder(bencodedValue.getBytes());
-                decoded = b.getDecoded();
-            } catch (RuntimeException e) {
-                System.out.println(e.getMessage());
-                return;
+                try {
+                    Decoder b = new Decoder(bencodedValue.getBytes());
+                    decoded = b.getDecoded();
+                } catch (RuntimeException e) {
+                    System.out.println(e.getMessage());
+                    return;
+                }
+
+                System.out.println(gson.toJson(decoded));
             }
+            case "info" -> {
+                File file = new File(args[1]);
 
-            System.out.println(gson.toJson(decoded));
+                Torrent torrent = null;
 
-        } else if (command.equals("info")) {
-            File file = new File(args[1]);
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    TorrentParser parser = new TorrentParser(fis);
+                    torrent = parser.getTorrent();
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                }
 
-            Torrent torrent = null;
+                if (torrent != null) {
+                    System.out.println("Tracker URL: " + torrent.getAnnounce());
+                    System.out.println("Length: " + torrent.getInfo().getLength());
 
-            try (FileInputStream fis = new FileInputStream(file)) {
-                TorrentParser parser = new TorrentParser(fis);
-                torrent = parser.getTorrent();
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
+                    System.out.println("Info Hash: " + new String(Hex.encodeHex(torrent.getInfo().getHash())));
+                    System.out.println("Piece Length: " + torrent.getInfo().getPieceLength());
+                    System.out.println("Piece Hashes:");
 
-            if (torrent != null) {
-                System.out.println("Tracker URL: " + torrent.getAnnounce());
-                System.out.println("Length: " + torrent.getInfo().getLength());
-
-                System.out.println("Info Hash: " + new String(Hex.encodeHex(torrent.getInfo().getHash())));
-                System.out.println("Piece Length: " + torrent.getInfo().getPieceLength());
-                System.out.println("Piece Hashes:");
-
-                for (byte[] piece : torrent.getInfo().getPieces()) {
-                    System.out.println(Hex.encodeHex(piece));
+                    for (byte[] piece : torrent.getInfo().getPieces()) {
+                        System.out.println(Hex.encodeHex(piece));
+                    }
                 }
             }
-        } else if (command.equals("peers")) {
-            Torrent torrent = null;
-            try (FileInputStream fis = new FileInputStream(args[1])) {
-                TorrentParser parser = new TorrentParser(fis);
-                torrent = parser.getTorrent();
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
+            case "peers" -> {
+                Torrent torrent = null;
+                try (FileInputStream fis = new FileInputStream(args[1])) {
+                    TorrentParser parser = new TorrentParser(fis);
+                    torrent = parser.getTorrent();
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                }
+                assert torrent != null;
+                TrackerRequest req = new TrackerRequest(torrent);
+                Tracker tracker = new Tracker(req);
+                TrackerResponse response = tracker.getResponse();
+                for (Peer p : response.getPeers()) {
+                    System.out.println(p);
+                }
             }
-            assert torrent != null;
-            TrackerRequest req = new TrackerRequest(torrent);
-            Tracker tracker = new Tracker(req);
-            TrackerResponse response = tracker.getResponse();
-            for (Peer p : response.getPeers()) {
-                System.out.println(p);
-            }
-        } else if ("handshake".equals(command)) {
-            handshake(args[1], args[2]);
-        } else if ("download_piece".equals(command)) {
-            if (args.length < 5 || !"-o".equals(args[1])) {
-                System.out.println(
-                        "Usage: download_piece -o <output_file> <torrent_file> <piece_index>"
-                );
-                return;
-            }
-            String outputPath = args[2];
-            String torrentPath = args[3];
-            int pieceIndex = Integer.parseInt(args[4]);
+            case "handshake" -> handshake(args[1], args[2]);
+            case "download_piece" -> {
+                if (args.length < 5 || !"-o".equals(args[1])) {
+                    System.out.println(
+                            "Usage: download_piece -o <output_file> <torrent_file> <piece_index>"
+                    );
+                    return;
+                }
+                String outputPath = args[2];
+                String torrentPath = args[3];
+                int pieceIndex = Integer.parseInt(args[4]);
 
-            try {
-                PieceDownloader.downloadPiece(outputPath, torrentPath, pieceIndex);
-            } catch (IOException| NoSuchAlgorithmException ex) {
-                System.out.println(ex.getMessage());
+                try {
+                    PieceDownloader.downloadPiece(outputPath, torrentPath, pieceIndex);
+                } catch (IOException | NoSuchAlgorithmException ex) {
+                    System.out.println(ex.getMessage());
+                }
             }
-        } else {
-            System.out.println("Unknown command: " + command);
+            case null, default -> System.out.println("Unknown command: " + command);
         }
 
     }
