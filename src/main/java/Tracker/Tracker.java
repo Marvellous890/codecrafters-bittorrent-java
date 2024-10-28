@@ -28,6 +28,7 @@ public class Tracker {
             return null;
         } finally {
             try {
+                assert httpResponse != null;
                 httpResponse.close();
                 httpClient.close();
             } catch (IOException e) {

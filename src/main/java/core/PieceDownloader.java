@@ -102,7 +102,7 @@ public class PieceDownloader {
                         unchokeMsg.messageId);
             }
 
-            int pieceLength = torrent.getInfo().getPieceLength();
+            int pieceLength = torrent.getInfo().getPieceLengthOfPiece(pieceIndex);
 
             int numBlocks = (int) Math.ceil((double) pieceLength / BLOCK_SIZE);
 
@@ -112,16 +112,21 @@ public class PieceDownloader {
 
             for (int blockIndex = 0; blockIndex < numBlocks; blockIndex++) {
                 int blockLength = Math.min(BLOCK_SIZE, pieceLength - offset);
-                byte[] requestPayload =
-                        createRequestPayload(pieceIndex, offset, blockLength);
+
+                byte[] requestPayload = createRequestPayload(pieceIndex, offset, blockLength);
+
                 sendMessage(out, REQUEST, requestPayload);
+
                 PeerMessage pieceMsg = readPeerMessage(in);
+
                 if (pieceMsg.messageId != PIECE) {
                     throw new RuntimeException("Expected piece message, got: " +
                             pieceMsg.messageId);
                 }
+
                 System.arraycopy(pieceMsg.payload, 8, pieceData, offset,
                         blockLength);
+
                 offset += blockLength;
             }
             return pieceData;

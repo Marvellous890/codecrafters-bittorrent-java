@@ -47,6 +47,13 @@ public class Info {
         return pieceLength;
     }
 
+    public int getPieceLengthOfPiece(int pieceIndex) {
+        if (pieceIndex == pieces.length - 1) {
+            return (int) (length % pieceLength);
+        }
+        return pieceLength;
+    }
+
     public void setPieceLength(int pieceLength) {
         this.pieceLength = pieceLength;
     }

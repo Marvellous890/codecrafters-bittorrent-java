@@ -1,10 +1,6 @@
 package Tracker;
 
 import B.Decoder;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -14,6 +10,7 @@ import java.util.Map;
 public class TrackerResponse {
     private int interval;
     private Peer[] peers;
+
     public TrackerResponse(InputStream in) {
         Decoder decoder = new Decoder(in, true);
         Map<String, Object> decodedBody = (Map<String, Object>) decoder.getDecoded();
@@ -23,9 +20,11 @@ public class TrackerResponse {
     public int getInterval() {
         return interval;
     }
+
     public Peer[] getPeers() {
         return peers;
     }
+
     private Peer[] parsePeers(byte[] bytes){
         int PEER_SIZE = 6;
         int totalPeers = bytes.length / PEER_SIZE;
