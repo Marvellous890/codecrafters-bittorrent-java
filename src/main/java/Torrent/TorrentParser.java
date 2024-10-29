@@ -5,7 +5,9 @@ import B.Encoder;
 
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class TorrentParser {
@@ -22,15 +24,37 @@ public class TorrentParser {
         return torrent;
     }
 
-    public Torrent parse(){
+    private Torrent parse(){
         Torrent torrent = new Torrent();
         torrent.setAnnounce(parseAnnounce());
+        torrent.setAnnounceList(parseAnnounceList());
         torrent.setInfo(parseInfo());
+        torrent.setCreatedBy(parseCreatedBy());
         return torrent;
     }
 
     private String parseAnnounce(){
-        return new String((byte[]) obj.get("announce"));
+        if (obj.containsKey("announce")){
+            return new String((byte[]) obj.get("announce"));
+        }
+
+        return null;
+    }
+
+    private List<String> parseAnnounceList(){
+        if (obj.containsKey("announce-list")){
+            return (List<String>) obj.get("announce-list");
+        }
+
+        return null;
+    }
+
+    private String parseCreatedBy(){
+        if (obj.containsKey("created by")){
+            return new String((byte[]) obj.get("created by"));
+        }
+
+        return null;
     }
 
     private Info parseInfo(){
@@ -40,13 +64,56 @@ public class TorrentParser {
 
         Encoder bencoder = new Encoder(infoMap);
 
-        info.setName(new String((byte[]) infoMap.get("name")));
-        info.setLength((long) infoMap.get("length"));
+        info.setName(parseInfoString(infoMap, "name"));
+        info.setLength(parseInfoLong(infoMap, "length"));
         info.setHash(sha1(bencoder.getEncoded()));
         info.setPieces(parsePieces());
-        info.setPieceLength(((Long) infoMap.get("pieceLength")).intValue());
-
+        info.setPieceLength(((int) parseInfoLong(infoMap, "pieceLength")));
+        info.setSource(parseInfoString(infoMap, "source"));
+        info.setTracker(parseInfoString(infoMap, "tracker"));
+        info.setFiles(parseFiles(infoMap));
         return info;
+    }
+
+    private String parseInfoString(Map<String, ?> infoMap, String str){
+        if (infoMap.containsKey(str)){
+            return new String((byte[]) infoMap.get(str));
+        }
+
+        return null;
+    }
+
+    private long parseInfoLong(Map<String, ?> infoMap, String str){
+        if (infoMap.containsKey(str)){
+            return (long) infoMap.get(str);
+        }
+
+        return 0;
+    }
+
+    private List<InfoFile> parseFiles(Map<String, ?> infoMap){
+        if (infoMap.containsKey("files")) {
+            List<Map<String, ?>> files = (List<Map<String, ?>>) infoMap.get("files");
+            List<InfoFile> infoFiles = new ArrayList<>();
+
+            for (Map<String, ?> file : files) {
+                InfoFile infoFile = new InfoFile();
+                infoFile.setLength(parseInfoLong(file, "length"));
+
+                List<String> path = new ArrayList<>();
+                List<?> filePath = (List<?>) file.get("path");
+                for (Object _path : filePath) {
+                    path.add(new String((byte[]) _path));
+                }
+
+                infoFile.setPath(path);
+                infoFiles.add(infoFile);
+            }
+
+            return infoFiles;
+        }
+
+        return null;
     }
 
     private byte[][] parsePieces(){

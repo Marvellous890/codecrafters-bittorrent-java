@@ -2,10 +2,13 @@ import B.Decoder;
 
 import Torrent.TorrentParser;
 import Torrent.Torrent;
+import Torrent.InfoFile;
+
 import Tracker.Tracker;
 import Tracker.TrackerRequest;
 import Tracker.TrackerResponse;
 import Tracker.Peer;
+
 import com.google.gson.Gson;
 import core.PieceDownloader;
 import org.apache.commons.codec.binary.Hex;
@@ -56,8 +59,18 @@ public class Main {
 
                     System.out.println("Info Hash: " + new String(Hex.encodeHex(torrent.getInfo().getHash())));
                     System.out.println("Piece Length: " + torrent.getInfo().getPieceLength());
-                    System.out.println("Piece Hashes:");
 
+                    /*System.out.println("Info Files");
+                    for (InfoFile infoFile : torrent.getInfo().getFiles()) {
+                        System.out.println("Paths:");
+                        for (String path : infoFile.getPath()) {
+                            System.out.println(path);
+                        }
+
+                        System.out.println("Length: " + infoFile.getLength());
+                    }*/
+
+                    System.out.println("Piece Hashes:");
                     for (byte[] piece : torrent.getInfo().getPieces()) {
                         System.out.println(Hex.encodeHex(piece));
                     }

@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Decoder class is responsible for decoding Bencode encoded data.
+ * The Decoder class is responsible for decoding Bencode encoded data. calling the constructor immediately decodes the data,
+ * and you can get the decoded object by calling getDecoded().
  */
 public class Decoder {
     private final Object decoded;
@@ -135,7 +136,7 @@ public class Decoder {
     /**
      * Reads a Bencode encoded list from the input stream.
      *
-     * @return the decoded list
+     * @return the decoded list as List (ArrayList)
      * @throws IOException if an I/O error occurs
      */
     private List<?> readList() throws IOException {
@@ -147,7 +148,7 @@ public class Decoder {
             if (next == 'e') break;
             list.add(decodeNext());
         }
-        next = in.read();
+        in.read();
         return list;
     }
 
@@ -168,7 +169,7 @@ public class Decoder {
             Object v = decodeNext();
             map.put(k, v);
         }
-        next = in.read();
+        in.read();
         return map;
     }
 

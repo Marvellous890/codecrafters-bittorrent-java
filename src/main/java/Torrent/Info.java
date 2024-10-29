@@ -1,8 +1,11 @@
 package Torrent;
 
+import java.util.List;
+
 public class Info {
     private String name;
 
+    // usually 0 in some files. they instead put the length of each file in files list.
     private long length;
 
     private int pieceLength;
@@ -10,6 +13,28 @@ public class Info {
     private byte[][] pieces;
 
     private byte[] hash;
+
+    private String tracker;
+
+    private String source;
+
+    private List<InfoFile> files;
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getTracker() {
+        return tracker;
+    }
+
+    public void setTracker(String tracker) {
+        this.tracker = tracker;
+    }
 
     public byte[] getHash() {
         return hash;
@@ -56,5 +81,13 @@ public class Info {
 
     public void setPieceLength(int pieceLength) {
         this.pieceLength = pieceLength;
+    }
+
+    public List<InfoFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<InfoFile> files) {
+        this.files = files;
     }
 }
