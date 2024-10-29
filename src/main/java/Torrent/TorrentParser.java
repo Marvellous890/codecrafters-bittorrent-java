@@ -26,16 +26,18 @@ public class TorrentParser {
 
     private Torrent parse(){
         Torrent torrent = new Torrent();
-        torrent.setAnnounce(parseAnnounce());
+
+        torrent.setAnnounce(parseString("announce"));
+        torrent.setCreatedBy(parseString("created by"));
         torrent.setAnnounceList(parseAnnounceList());
         torrent.setInfo(parseInfo());
-        torrent.setCreatedBy(parseCreatedBy());
+
         return torrent;
     }
 
-    private String parseAnnounce(){
-        if (obj.containsKey("announce")){
-            return new String((byte[]) obj.get("announce"));
+    private String parseString (String s) {
+        if (obj.containsKey(s)){
+            return new String((byte[]) obj.get(s));
         }
 
         return null;
@@ -49,14 +51,6 @@ public class TorrentParser {
         return null;
     }
 
-    private String parseCreatedBy(){
-        if (obj.containsKey("created by")){
-            return new String((byte[]) obj.get("created by"));
-        }
-
-        return null;
-    }
-
     private Info parseInfo(){
         Info info = new Info();
 
@@ -65,13 +59,14 @@ public class TorrentParser {
         Encoder bencoder = new Encoder(infoMap);
 
         info.setName(parseInfoString(infoMap, "name"));
-        info.setLength(parseInfoLong(infoMap, "length"));
-        info.setHash(sha1(bencoder.getEncoded()));
-        info.setPieces(parsePieces());
-        info.setPieceLength(((int) parseInfoLong(infoMap, "pieceLength")));
         info.setSource(parseInfoString(infoMap, "source"));
         info.setTracker(parseInfoString(infoMap, "tracker"));
+        info.setHash(sha1(bencoder.getEncoded()));
+        info.setPieces(parsePieces());
+        info.setLength(parseInfoLong(infoMap, "length"));
+        info.setPieceLength(((int) parseInfoLong(infoMap, "pieceLength")));
         info.setFiles(parseFiles(infoMap));
+
         return info;
     }
 
