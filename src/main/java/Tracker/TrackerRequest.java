@@ -1,7 +1,7 @@
 package Tracker;
 
 import Torrent.Torrent;
-import core.PieceDownloader;
+import core.Downloader;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,7 +20,7 @@ public class TrackerRequest {
     public TrackerRequest(Torrent torrent) {
         announce = torrent.getAnnounce();
         infoHash = torrent.getInfo().getHash();
-        peerId = PieceDownloader.PEER_ID.getBytes();
+        peerId = Downloader.PEER_ID.getBytes();
         port = 6881;
         uploaded = 0;
         downloaded = 0;

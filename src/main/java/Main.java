@@ -2,7 +2,6 @@ import B.Decoder;
 
 import Torrent.TorrentParser;
 import Torrent.Torrent;
-import Torrent.InfoFile;
 
 import Tracker.Tracker;
 import Tracker.TrackerRequest;
@@ -10,7 +9,7 @@ import Tracker.TrackerResponse;
 import Tracker.Peer;
 
 import com.google.gson.Gson;
-import core.PieceDownloader;
+import core.Downloader;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.*;
@@ -105,9 +104,26 @@ public class Main {
                 int pieceIndex = Integer.parseInt(args[4]);
 
                 try {
-                    PieceDownloader.downloadPiece(outputPath, torrentPath, pieceIndex);
+                    Downloader.downloadPiece(outputPath, torrentPath, pieceIndex);
                 } catch (IOException | NoSuchAlgorithmException ex) {
                     System.out.println(ex.getMessage());
+                }
+            }
+            case "download" -> {
+                if (args.length < 4 || !"-o".equals(args[1])) {
+                    System.out.println(
+                            "Usage: download -o <output_file> <torrent_file>"
+                    );
+                    return;
+                }
+
+                var outputPath = args[2];
+                var torrentPath = args[3];
+
+                try {
+                    Downloader.download(outputPath, torrentPath);
+                } catch (Exception ex) {
+                    System.out.println(ex.getClass() + ": " + ex.getMessage());
                 }
             }
             case null, default -> System.out.println("Unknown command: " + command);

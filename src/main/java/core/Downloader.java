@@ -16,7 +16,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-public class PieceDownloader {
+public class Downloader {
     public static final String PEER_ID = "-MY0001-" + randomString(12);
     public static final int BLOCK_SIZE = 16 * 1024;
     public static final int MESSAGE_LENGTH_SIZE = 4;
@@ -28,18 +28,9 @@ public class PieceDownloader {
     public static final byte PIECE = 7;
 
     public static void downloadPiece(String outputPath, String torrentPath, int pieceIndex) throws NoSuchAlgorithmException, IOException {
-        Torrent torrent = null;
-
-        try (FileInputStream fis = new FileInputStream(torrentPath)) {
-            TorrentParser parser = new TorrentParser(fis);
-            torrent = parser.getTorrent();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-
-        if (torrent == null) {
-            throw new RuntimeException("Failed to parse torrent file");
-        }
+        FileInputStream fis = new FileInputStream(torrentPath);
+        TorrentParser parser = new TorrentParser(fis);
+        Torrent torrent = parser.getTorrent();
 
         TrackerRequest req = new TrackerRequest(torrent);
         Tracker tracker = new Tracker(req);
@@ -50,7 +41,9 @@ public class PieceDownloader {
         if (peers.length == 0) {
             throw new RuntimeException("No peers available");
         }
+
         byte[] downloadedPiece = null;
+
         for (Peer peer : peers) {
             try {
                 downloadedPiece = downloadPieceFromPeer(peer.getIp().getHostAddress(), peer.getPort(), torrent, pieceIndex);
@@ -59,15 +52,36 @@ public class PieceDownloader {
                 System.err.println("Failed to download from peer " + peer + ": " + e.getMessage());
             }
         }
+
         if (downloadedPiece == null) {
             throw new RuntimeException("Failed to download piece from any peer");
         }
+
         byte[] expectedHash = torrent.getInfo().getPieces()[pieceIndex];
         byte[] actualHash = MessageDigest.getInstance("SHA-1").digest(downloadedPiece);
         if (!Arrays.equals(expectedHash, actualHash)) {
             throw new RuntimeException("Piece hash verification failed");
         }
+
         Files.write(new File(outputPath).toPath(), downloadedPiece);
+    }
+
+    public static void download(String outputPath, String torrentPath) throws Exception {
+        // get all pieces, download each piece, merge all into one file and save to outputPath
+        TorrentParser parser = new TorrentParser(new FileInputStream(torrentPath));
+        Torrent torrent = parser.getTorrent();
+        byte[][] pieces = torrent.getInfo().getPieces();
+
+        for (int i = 0; i < pieces.length; i++) {
+            downloadPiece(outputPath + ".part" + i, torrentPath, i);
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(outputPath)) {
+            for (int i = 0; i < pieces.length; i++) {
+                Files.copy(new File(outputPath + ".part" + i).toPath(), fos);
+                Files.delete(new File(outputPath + ".part" + i).toPath());
+            }
+        }
     }
 
     private static byte[] downloadPieceFromPeer(String host, int port, Torrent torrent, int pieceIndex)
