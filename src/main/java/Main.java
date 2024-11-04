@@ -10,6 +10,7 @@ import Tracker.Peer;
 
 import com.google.gson.Gson;
 import core.Downloader;
+import core.MagnetLink;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.*;
@@ -125,6 +126,12 @@ public class Main {
                 } catch (Exception ex) {
                     System.out.println(ex.getClass() + ": " + ex.getMessage());
                 }
+            }
+            case "magnet_parse" -> {
+                String magnetLink = args[1];
+                MagnetLink magnet = new MagnetLink(magnetLink);
+                System.out.println("Tracker URL: " + magnet.getTrackerUrl());
+                System.out.println("Info Hash: " + magnet.getInfoHash());
             }
             case null, default -> System.out.println("Unknown command: " + command);
         }
